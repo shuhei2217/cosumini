@@ -1,2 +1,6 @@
 # Claude Code local tooling (not part of the website)
 .claude/
+
+# Server-only secrets & runtime files (never commit / never deploy over)
+config.php
+orders.log

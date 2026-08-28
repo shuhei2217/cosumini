@@ -40,6 +40,9 @@ jobs:
             --exclude-glob .git* \
             --exclude-glob .github/ \
             --exclude-glob .claude/ \
+            --exclude-glob config.php \
+            --exclude-glob config.sample.php \
+            --exclude-glob orders.log \
             --exclude-glob README.txt \
             ./ '${FTP_SERVER_DIR}';
           "
