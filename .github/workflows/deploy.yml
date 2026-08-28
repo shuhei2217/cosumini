@@ -1,0 +1,32 @@
+name: Deploy to server (FTP)
+
+# mainブランチにpushされるたび、サーバーへFTPで自動アップロードします。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  ftp-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: FTP upload
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          # 以下4つは GitHub の Settings > Secrets and variables > Actions に登録してください
+          server: ${{ secrets.FTP_SERVER }}       # 例: ftp.example.com
+          username: ${{ secrets.FTP_USERNAME }}   # FTPユーザー名
+          password: ${{ secrets.FTP_PASSWORD }}   # FTPパスワード
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}  # 例: /public_html/  (末尾スラッシュ必須)
+          # 必要なら protocol: ftps を追記（サーバーが暗号化必須の場合）
+          # protocol: ftps
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/.claude/**
+            README.txt
