@@ -21,8 +21,9 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}   # FTPユーザー名
           password: ${{ secrets.FTP_PASSWORD }}   # FTPパスワード
           server-dir: ${{ secrets.FTP_SERVER_DIR }}  # 例: /public_html/  (末尾スラッシュ必須)
-          protocol: ftps   # XREAは暗号化接続。失敗したら ftp に変更
+          protocol: ftp    # FTPSはデータソケットがECONNRESETするため平文FTPに変更
           port: 21
+          timeout: 60000
           dangerous-clean-slate: false
           exclude: |
             **/.git*
