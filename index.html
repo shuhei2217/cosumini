@@ -583,6 +583,26 @@
                 </div>
             </div>
 
+            <!-- Item 7: 季節限定商品 -->
+            <div class="product-item cat-sweets cat-recommend bg-white rounded-2xl border-2 border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition group">
+                <div class="aspect-square bg-orange-50 relative overflow-hidden">
+                    <img src="images/seasonal.jpg" alt="季節限定商品"
+                         class="w-full h-full object-cover transform group-hover:scale-105 transition duration-300">
+                    <span class="absolute top-2 left-2 bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm">
+                        🎃 季節限定
+                    </span>
+                </div>
+                <div class="p-3">
+                    <div class="text-[10px] text-costcoBlue font-black uppercase">スタッフおすすめ</div>
+                    <h3 class="font-black text-xs md:text-sm text-slate-800 line-clamp-1">季節限定商品</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5 line-clamp-1">ハロウィンなど季節ごとの限定品が登場！</p>
+                    <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-costcoRed font-black text-xs">数量限定</span>
+                        <span class="text-[10px] text-orange-600 bg-orange-50 font-bold px-1.5 py-0.5 rounded">今だけ</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </section>
 
@@ -679,7 +699,7 @@
         // ▼▼▼ 取扱商品リスト：ここを編集すればカテゴリー・商品を追加/変更できます ▼▼▼
         var ORDER_ITEMS = {
             "デリ・パン": ["ディナーロール（小分け）", "ハイローラー（B.L.T）", "ミックス マフィン"],
-            "お菓子・食品": ["オイコス ヨーグルト"],
+            "お菓子・食品": ["オイコス ヨーグルト", "季節限定商品"],
             "日用品・雑貨": ["ペーパータオル", "オキシクリーン（小分け）"]
         };
         var OTHER_CAT = "その他（コストコ取り寄せ）";
@@ -1056,7 +1076,8 @@
             ["お菓子・食品", "オイコス ヨーグルト"],
             ["デリ・パン", "ミックス マフィン"],
             ["日用品・雑貨", "ペーパータオル"],
-            ["日用品・雑貨", "オキシクリーン（小分け）"]
+            ["日用品・雑貨", "オキシクリーン（小分け）"],
+            ["お菓子・食品", "季節限定商品"]
         ];
 
         var modal = document.getElementById('productModal');
