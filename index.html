@@ -1017,5 +1017,131 @@
             });
         }
     </script>
+
+    <!-- Product Detail Modal -->
+    <div id="productModal" class="hidden fixed inset-0 z-[60] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4" aria-hidden="true">
+        <div id="productModalCard" role="dialog" aria-modal="true" aria-labelledby="pm-name" class="bg-white rounded-3xl border-2 border-slate-200 shadow-2xl w-full max-w-md max-h-[92vh] overflow-y-auto relative">
+            <button type="button" id="pm-close" aria-label="閉じる" class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-md flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="w-full h-56 md:h-64 bg-slate-100 overflow-hidden">
+                <img id="pm-img" src="" alt="" class="w-full h-full object-cover">
+            </div>
+            <div class="p-6">
+                <div id="pm-cat" class="text-[10px] text-costcoBlue font-black uppercase"></div>
+                <h3 id="pm-name" class="text-lg md:text-xl font-black text-slate-900 mt-0.5"></h3>
+                <p id="pm-desc" class="text-sm text-slate-600 font-medium mt-2 leading-relaxed"></p>
+                <div id="pm-tags" class="mt-3 flex flex-wrap gap-2"></div>
+                <div class="mt-4 bg-amber-50 border-2 border-amber-200 rounded-2xl p-3 text-[11px] text-amber-900 font-bold leading-relaxed">
+                    <i class="fa-solid fa-circle-info mr-1"></i>入荷状況により在庫は変動します。ご注文確定後のキャンセルはできません。
+                </div>
+                <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                    <button type="button" id="pm-reserve" class="flex-1 bg-costcoRed hover:bg-red-700 text-white font-black text-sm px-5 py-3 rounded-full transition shadow-md border-2 border-red-700">
+                        <i class="fa-solid fa-clipboard-check mr-2"></i>この商品を予約する
+                    </button>
+                    <button type="button" id="pm-dismiss" class="sm:w-28 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-sm px-5 py-3 rounded-full transition border-2 border-slate-200">
+                        閉じる
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        // カードの並び順に合わせた [カテゴリー, 商品名]。予約フォームの ORDER_ITEMS と文字列を一致させること。
+        var CARD_ORDER = [
+            ["デリ・パン", "ディナーロール（小分け）"],
+            ["デリ・パン", "ハイローラー（B.L.T）"],
+            ["お菓子・食品", "オイコス ヨーグルト"],
+            ["デリ・パン", "ミックス マフィン"],
+            ["日用品・雑貨", "ペーパータオル"],
+            ["日用品・雑貨", "オキシクリーン（小分け）"]
+        ];
+
+        var modal = document.getElementById('productModal');
+        var pmImg = document.getElementById('pm-img');
+        var pmCat = document.getElementById('pm-cat');
+        var pmName = document.getElementById('pm-name');
+        var pmDesc = document.getElementById('pm-desc');
+        var pmTags = document.getElementById('pm-tags');
+        var pmReserve = document.getElementById('pm-reserve');
+        var cards = Array.prototype.slice.call(document.querySelectorAll('#product-grid .product-item'));
+
+        function openModal(card) {
+            var img = card.querySelector('img');
+            var cat = card.querySelector('.p-3 .uppercase');
+            var name = card.querySelector('.p-3 h3');
+            var desc = card.querySelector('.p-3 p');
+            pmImg.src = img ? img.getAttribute('src') : '';
+            pmImg.alt = name ? name.textContent : '';
+            pmCat.textContent = cat ? cat.textContent.trim() : '';
+            pmName.textContent = name ? name.textContent.trim() : '';
+            pmDesc.textContent = desc ? desc.textContent.trim() : '';
+            pmTags.innerHTML = '';
+            card.querySelectorAll('.p-3 .border-t span').forEach(function (s) {
+                var t = document.createElement('span');
+                t.className = 'text-[11px] font-black text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full';
+                t.textContent = s.textContent.trim();
+                pmTags.appendChild(t);
+            });
+            pmReserve.dataset.cat = card.dataset.cat || '';
+            pmReserve.dataset.prod = card.dataset.prod || '';
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('pm-close').focus();
+        }
+        function closeModal() {
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        cards.forEach(function (card, i) {
+            if (CARD_ORDER[i]) {
+                card.dataset.cat = CARD_ORDER[i][0];
+                card.dataset.prod = CARD_ORDER[i][1];
+            }
+            card.classList.add('cursor-pointer');
+            card.setAttribute('role', 'button');
+            card.setAttribute('tabindex', '0');
+            card.setAttribute('aria-label', (card.querySelector('h3') ? card.querySelector('h3').textContent.trim() : '商品') + 'の詳細を見る');
+            var imgWrap = card.querySelector('.aspect-square');
+            if (imgWrap) {
+                var pill = document.createElement('span');
+                pill.className = 'absolute bottom-2 right-2 bg-white/95 text-slate-800 text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition';
+                pill.innerHTML = '<i class="fa-solid fa-magnifying-glass-plus mr-1"></i>詳しく見る';
+                imgWrap.appendChild(pill);
+            }
+            card.addEventListener('click', function () { openModal(card); });
+            card.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(card); }
+            });
+        });
+
+        document.getElementById('pm-close').addEventListener('click', closeModal);
+        document.getElementById('pm-dismiss').addEventListener('click', closeModal);
+        modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal(); });
+
+        pmReserve.addEventListener('click', function () {
+            var c = pmReserve.dataset.cat, p = pmReserve.dataset.prod;
+            closeModal();
+            var catSel = document.getElementById('of-category');
+            if (catSel && c) {
+                catSel.value = c;
+                catSel.dispatchEvent(new Event('change'));
+                var prodSel = document.getElementById('of-product');
+                if (prodSel && p) {
+                    prodSel.value = p;
+                    prodSel.dispatchEvent(new Event('change'));
+                }
+            }
+            var order = document.getElementById('order');
+            if (order) order.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    })();
+    </script>
 </body>
 </html>
