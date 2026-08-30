@@ -221,7 +221,7 @@
                 </div>
 
                 <a href="#order" class="mt-1 inline-flex w-full items-center justify-center gap-2 bg-costcoRed hover:bg-red-700 text-white font-black text-sm md:text-base px-6 py-3.5 rounded-full transition shadow-md border-2 border-red-700">
-                    <i class="fa-solid fa-clipboard-check"></i> WEBで予約注文する
+                    <i class="fa-solid fa-comments"></i> ご注文・お問い合わせ方法
                 </a>
             </div>
 
@@ -606,221 +606,71 @@
         </div>
     </section>
 
-    <!-- Reservation / Order Form Section -->
+    <!-- Order & Inquiry Methods Section -->
     <section id="order" class="py-14 bg-gradient-to-b from-white to-slate-100 border-t-2 border-slate-200 px-4">
-        <div class="max-w-3xl mx-auto">
+        <div class="max-w-5xl mx-auto">
             <div class="text-center mb-8">
                 <div class="inline-flex items-center gap-1.5 bg-costcoRed/10 text-costcoRed font-black text-xs px-3.5 py-1 rounded-full uppercase tracking-wider mb-2">
-                    <i class="fa-solid fa-clipboard-check"></i> ONLINE RESERVATION
+                    <i class="fa-solid fa-comments"></i> ORDER &amp; CONTACT
                 </div>
-                <h2 class="text-2xl md:text-4xl font-black text-slate-900 leading-tight">予約注文フォーム</h2>
+                <h2 class="text-2xl md:text-4xl font-black text-slate-900 leading-tight">ご注文・お問い合わせ方法</h2>
                 <p class="text-slate-600 text-xs md:text-sm mt-2 font-medium">
-                    店頭在庫のキープ・コストコ商品のお取り寄せをWEBで受付。<br class="hidden sm:inline">
-                    <span class="font-black text-costcoRed">毎週木曜まで</span>のご注文で、今週<span class="font-black text-costcoBlue">土曜日</span>以降にお受け取りいただけます。
+                    ご注文・お取り置き・お取り寄せのご相談は、<br class="hidden sm:inline">
+                    <span class="font-black text-costcoRed">店頭・お電話・Instagram</span> で承っています。
                 </p>
             </div>
 
-            <div class="bg-white rounded-3xl border-2 border-slate-200 shadow-lg p-6 md:p-8">
-                <form id="orderForm" method="post" action="submit.php" class="space-y-5" novalidate>
-                    <div class="hidden" aria-hidden="true">
-                        <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
-                    </div>
-                    <input type="hidden" name="ts" id="orderTs" value="">
-
-                    <div class="grid sm:grid-cols-2 gap-5">
-                        <div>
-                            <label for="of-category" class="block text-xs font-black text-slate-700 mb-1.5">商品カテゴリー <span class="text-costcoRed">*</span></label>
-                            <select id="of-category" name="category" required class="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-800 focus:border-costcoBlue focus:outline-none">
-                                <option value="">選択してください</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="of-product" class="block text-xs font-black text-slate-700 mb-1.5">商品名 <span class="text-costcoRed">*</span></label>
-                            <select id="of-product" name="product" required class="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-800 focus:border-costcoBlue focus:outline-none">
-                                <option value="">先にカテゴリーを選択</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="of-product-free-wrap" class="hidden">
-                        <label for="of-product-free" class="block text-xs font-black text-slate-700 mb-1.5">商品名を入力 <span class="text-costcoRed">*</span></label>
-                        <input type="text" id="of-product-free" name="product_free" maxlength="120" placeholder="例：ロティサリーチキン" class="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-800 focus:border-costcoBlue focus:outline-none">
-                        <p class="text-[11px] text-slate-500 font-bold mt-1">コストコでの商品名をできるだけ正確にご記入ください。</p>
-                    </div>
-
-                    <div class="grid sm:grid-cols-2 gap-5">
-                        <div>
-                            <label for="of-qty" class="block text-xs font-black text-slate-700 mb-1.5">個数 <span class="text-costcoRed">*</span></label>
-                            <select id="of-qty" name="qty" required class="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-800 focus:border-costcoBlue focus:outline-none"></select>
-                        </div>
-                        <div>
-                            <label for="of-pickup" class="block text-xs font-black text-slate-700 mb-1.5">受取希望日</label>
-                            <select id="of-pickup" name="pickup" class="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-800 focus:border-costcoBlue focus:outline-none"></select>
-                        </div>
-                    </div>
-
-                    <div class="grid sm:grid-cols-2 gap-5">
-                        <div>
-                            <label for="of-name" class="block text-xs font-black text-slate-700 mb-1.5">お名前 <span class="text-costcoRed">*</span></label>
-                            <input type="text" id="of-name" name="name" required maxlength="80" autocomplete="name" placeholder="山田 太郎" class="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-800 focus:border-costcoBlue focus:outline-none">
-                        </div>
-                        <div>
-                            <label for="of-tel" class="block text-xs font-black text-slate-700 mb-1.5">電話番号 <span class="text-costcoRed">*</span></label>
-                            <input type="tel" id="of-tel" name="tel" required maxlength="20" inputmode="tel" autocomplete="tel" placeholder="09012345678" class="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-800 focus:border-costcoBlue focus:outline-none">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label for="of-note" class="block text-xs font-black text-slate-700 mb-1.5">備考（受取時間のご希望、複数商品のご注文など）</label>
-                        <textarea id="of-note" name="note" rows="3" maxlength="1000" class="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-800 focus:border-costcoBlue focus:outline-none" placeholder="複数商品をご希望の場合は「商品名 × 個数」をこちらに追記してください。"></textarea>
-                    </div>
-
-                    <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-3.5 text-[11px] md:text-xs text-amber-900 font-bold leading-relaxed">
-                        <i class="fa-solid fa-circle-exclamation mr-1"></i>
-                        ご注文確定後のキャンセルはできません。ご予約は毎週木曜まで、お受け取りは土曜日以降・店頭渡しです。送信後、当店より確認のご連絡をいたします。
-                    </div>
-
-                    <button type="submit" id="of-submit" class="w-full bg-costcoRed hover:bg-red-700 text-white font-black text-sm md:text-base px-6 py-3.5 rounded-full transition shadow-md border-2 border-red-700 disabled:opacity-60 disabled:cursor-not-allowed">
-                        <i class="fa-solid fa-paper-plane mr-2"></i>この内容で予約注文する
-                    </button>
-
-                    <div id="of-result" class="hidden rounded-2xl p-4 text-sm font-bold text-center"></div>
-
-                    <p class="text-[11px] text-slate-400 font-bold text-center">
-                        送信できない場合はお電話ください：予約注文 080-6131-5232 / お問い合わせ 0995-70-0904
+            <div class="grid md:grid-cols-3 gap-5">
+                <div class="bg-white rounded-3xl border-2 border-slate-200 shadow-lg p-6 text-center flex flex-col">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-costcoRed text-white flex items-center justify-center text-2xl shadow"><i class="fa-solid fa-store"></i></div>
+                    <h3 class="font-black text-lg text-slate-900 mt-3">店頭で直接</h3>
+                    <p class="text-xs text-slate-600 font-medium mt-2 leading-relaxed flex-1">
+                        スタッフに直接ご相談ください。店内在庫のお取り置き、店内にないコストコ商品のお取り寄せも承ります。
                     </p>
-                </form>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs font-bold text-slate-700 space-y-0.5">
+                        <div><span class="text-costcoRed font-black">営業日</span> 土・日・月</div>
+                        <div>11:00 〜 19:00</div>
+                        <div class="text-slate-500 font-medium mt-1">鹿児島県霧島市国分府中町28-3</div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border-2 border-slate-200 shadow-lg p-6 text-center flex flex-col">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-costcoBlue text-white flex items-center justify-center text-2xl shadow"><i class="fa-solid fa-phone"></i></div>
+                    <h3 class="font-black text-lg text-slate-900 mt-3">お電話</h3>
+                    <p class="text-xs text-slate-600 font-medium mt-2 leading-relaxed flex-1">
+                        ご予約・お取り寄せのご注文、商品のお問い合わせを承っています。
+                    </p>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-sm font-black space-y-2">
+                        <a href="tel:08061315232" class="block text-costcoRed hover:underline"><i class="fa-solid fa-phone text-xs mr-1"></i>予約注文<br>080-6131-5232</a>
+                        <a href="tel:0995700904" class="block text-costcoBlue hover:underline"><i class="fa-solid fa-phone text-xs mr-1"></i>商品問い合わせ<br>0995-70-0904</a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border-2 border-slate-200 shadow-lg p-6 text-center flex flex-col">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center text-2xl shadow"><i class="fa-brands fa-instagram"></i></div>
+                    <h3 class="font-black text-lg text-slate-900 mt-3">Instagram DM</h3>
+                    <p class="text-xs text-slate-600 font-medium mt-2 leading-relaxed flex-1">
+                        写真を見せてのご相談やご質問にも便利です。お気軽にメッセージください。
+                    </p>
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <a href="https://ig.me/m/cosmini_kokubu" target="_blank" rel="noopener noreferrer"
+                           class="inline-flex items-center gap-2 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white font-black text-sm px-5 py-2.5 rounded-full shadow-md hover:opacity-90 transition">
+                            <i class="fa-brands fa-instagram"></i> DMを送る
+                        </a>
+                        <p class="text-[11px] text-slate-400 font-bold mt-2">@cosmini_kokubu</p>
+                    </div>
+                </div>
             </div>
 
-            <div class="mt-5 text-center">
-                <p class="text-xs text-slate-500 font-bold mb-2">フォームが難しい方・写真を見せて相談したい方は</p>
-                <a href="https://ig.me/m/cosmini_kokubu" target="_blank" rel="noopener noreferrer"
-                   class="inline-flex items-center gap-2 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white font-black text-sm px-6 py-3 rounded-full shadow-md hover:opacity-90 transition">
-                    <i class="fa-brands fa-instagram text-lg"></i> InstagramのDMで相談・注文する
-                </a>
-                <p class="text-[11px] text-slate-400 font-bold mt-2">@cosmini_kokubu のメッセージ画面が開きます</p>
+            <div class="mt-6 bg-costcoRed text-white rounded-2xl p-4 md:p-5 shadow-md border-2 border-red-700 text-center">
+                <p class="text-xs md:text-sm font-black flex items-center justify-center gap-2 flex-wrap">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    毎週木曜日までのご予約 ➔ 今週の土曜日以降にお受け取り（店頭渡し）
+                </p>
+                <p class="text-[11px] text-red-100 font-bold mt-1.5">※ご注文・お取り置き確定後のキャンセルはできません。予めご了承ください。</p>
             </div>
         </div>
     </section>
-
-    <script>
-    (function () {
-        // ▼▼▼ 取扱商品リスト：ここを編集すればカテゴリー・商品を追加/変更できます ▼▼▼
-        var ORDER_ITEMS = {
-            "デリ・パン": ["ディナーロール（小分け）", "ハイローラー（B.L.T）", "ミックス マフィン"],
-            "お菓子・食品": ["オイコス ヨーグルト", "季節限定商品"],
-            "日用品・雑貨": ["ペーパータオル", "オキシクリーン（小分け）"]
-        };
-        var OTHER_CAT = "その他（コストコ取り寄せ）";
-        var FREE = "その他（自由記入）";
-        // ▲▲▲ ここまで ▲▲▲
-
-        function opt(v, t) { var o = document.createElement('option'); o.value = v; o.textContent = t; return o; }
-
-        var catSel = document.getElementById('of-category');
-        var prodSel = document.getElementById('of-product');
-        var freeWrap = document.getElementById('of-product-free-wrap');
-        var freeInput = document.getElementById('of-product-free');
-        var qtySel = document.getElementById('of-qty');
-        var pickupSel = document.getElementById('of-pickup');
-        var form = document.getElementById('orderForm');
-        var btn = document.getElementById('of-submit');
-        var result = document.getElementById('of-result');
-        var nameInput = document.getElementById('of-name');
-        var telInput = document.getElementById('of-tel');
-
-        document.getElementById('orderTs').value = Date.now();
-
-        Object.keys(ORDER_ITEMS).forEach(function (c) { catSel.appendChild(opt(c, c)); });
-        catSel.appendChild(opt(OTHER_CAT, OTHER_CAT));
-
-        function fillProducts() {
-            var c = catSel.value;
-            prodSel.innerHTML = '';
-            if (!c) {
-                prodSel.appendChild(opt('', '先にカテゴリーを選択'));
-                toggleFree();
-                return;
-            }
-            prodSel.appendChild(opt('', '選択してください'));
-            (ORDER_ITEMS[c] || []).forEach(function (p) { prodSel.appendChild(opt(p, p)); });
-            prodSel.appendChild(opt(FREE, FREE));
-            if (!(ORDER_ITEMS[c] || []).length) { prodSel.value = FREE; }
-            toggleFree();
-        }
-        function toggleFree() {
-            var show = prodSel.value === FREE;
-            freeWrap.classList.toggle('hidden', !show);
-            freeInput.required = show;
-        }
-        catSel.addEventListener('change', fillProducts);
-        prodSel.addEventListener('change', toggleFree);
-
-        for (var i = 1; i <= 20; i++) { qtySel.appendChild(opt(String(i), i + ' 個')); }
-        qtySel.appendChild(opt('21個以上（備考に記入）', '21個以上（備考に記入）'));
-
-        pickupSel.appendChild(opt('', 'できるだけ早く / 相談したい'));
-        (function () {
-            var d = new Date(); d.setHours(0, 0, 0, 0);
-            var added = 0, guard = 0;
-            while (added < 6 && guard < 60) {
-                d.setDate(d.getDate() + 1); guard++;
-                if (d.getDay() === 6) {
-                    var label = (d.getMonth() + 1) + '月' + d.getDate() + '日（土）';
-                    pickupSel.appendChild(opt(label, label));
-                    added++;
-                }
-            }
-        })();
-
-        function showResult(ok, msg) {
-            result.className = 'rounded-2xl p-4 text-sm font-bold text-center border-2 ' +
-                (ok ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-red-800 border-red-200');
-            result.textContent = msg;
-            result.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            var needFree = prodSel.value === FREE;
-            if (!catSel.value || !prodSel.value || !qtySel.value || !nameInput.value.trim() || !telInput.value.trim()) {
-                showResult(false, '未入力の必須項目があります。ご確認ください。');
-                return;
-            }
-            if (needFree && !freeInput.value.trim()) {
-                showResult(false, '商品名をご入力ください。');
-                return;
-            }
-            if (telInput.value.replace(/[^0-9]/g, '').length < 9) {
-                showResult(false, '電話番号をご確認ください。');
-                return;
-            }
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>送信中...';
-            fetch('submit.php', { method: 'POST', body: new FormData(form) })
-                .then(function (r) { return r.json().catch(function () { return { ok: r.ok }; }); })
-                .then(function (data) {
-                    if (data && data.ok) {
-                        form.reset();
-                        document.getElementById('orderTs').value = Date.now();
-                        fillProducts();
-                        showResult(true, 'ご注文を受け付けました。当店より確認のご連絡をいたします。ありがとうございます！');
-                    } else {
-                        showResult(false, '送信に失敗しました。お手数ですがお電話（080-6131-5232 / 0995-70-0904）でご注文ください。');
-                    }
-                })
-                .catch(function () {
-                    showResult(false, '送信に失敗しました。お手数ですがお電話（080-6131-5232 / 0995-70-0904）でご注文ください。');
-                })
-                .finally(function () {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>この内容で予約注文する';
-                });
-        });
-
-        fillProducts();
-    })();
-    </script>
 
     <!-- Store Information & Access Section -->
     <section id="access" class="bg-white py-12 px-4 border-t-2 border-slate-200">
@@ -1066,7 +916,7 @@
                 </div>
                 <div class="mt-4 flex flex-col sm:flex-row gap-2">
                     <button type="button" id="pm-reserve" class="flex-1 bg-costcoRed hover:bg-red-700 text-white font-black text-sm px-5 py-3 rounded-full transition shadow-md border-2 border-red-700">
-                        <i class="fa-solid fa-clipboard-check mr-2"></i>この商品を予約する
+                        <i class="fa-solid fa-comments mr-2"></i>この商品を相談・注文する
                     </button>
                     <button type="button" id="pm-dismiss" class="sm:w-28 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-sm px-5 py-3 rounded-full transition border-2 border-slate-200">
                         閉じる
@@ -1078,7 +928,7 @@
 
     <script>
     (function () {
-        // カードの並び順に合わせた [カテゴリー, 商品名]。予約フォームの ORDER_ITEMS と文字列を一致させること。
+        // カードの並び順に合わせた [カテゴリー, 商品名]（詳細ポップアップ用）
         var CARD_ORDER = [
             ["デリ・パン", "ディナーロール（小分け）"],
             ["デリ・パン", "ハイローラー（B.L.T）"],
@@ -1156,18 +1006,7 @@
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal(); });
 
         pmReserve.addEventListener('click', function () {
-            var c = pmReserve.dataset.cat, p = pmReserve.dataset.prod;
             closeModal();
-            var catSel = document.getElementById('of-category');
-            if (catSel && c) {
-                catSel.value = c;
-                catSel.dispatchEvent(new Event('change'));
-                var prodSel = document.getElementById('of-product');
-                if (prodSel && p) {
-                    prodSel.value = p;
-                    prodSel.dispatchEvent(new Event('change'));
-                }
-            }
             var order = document.getElementById('order');
             if (order) order.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
