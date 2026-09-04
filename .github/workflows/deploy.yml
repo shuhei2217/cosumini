@@ -44,5 +44,7 @@ jobs:
             --exclude-glob config.sample.php \
             --exclude-glob orders.log \
             --exclude-glob README.txt \
+            --exclude-glob docs/ \
+            --exclude-glob access.json \
             ./ '${FTP_SERVER_DIR}';
           "

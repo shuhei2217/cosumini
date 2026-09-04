@@ -17,6 +17,19 @@
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>">
 
+    <!-- ▼ Google アナリティクス（GA4）を使う場合はこの2行のコメント記号を外し、
+         G-XXXXXXXXXX の部分を自分の「測定ID」に書き換えてください。
+         測定IDは https://analytics.google.com/ で無料登録すると取得できます。
+         ※ 使わない場合はこのままで大丈夫です（自前カウンターだけで動きます）。
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+    -->
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -1012,5 +1025,24 @@
         });
     })();
     </script>
+    <!-- ▼ アクセス計測（自前カウンター / count.php に記録し stats.php で確認） -->
+    <script>
+    (function () {
+        if (window.__cosminiCounted) return;
+        window.__cosminiCounted = true;
+        try {
+            var q = 'p=' + encodeURIComponent(location.pathname + location.search)
+                  + '&r=' + encodeURIComponent(document.referrer || '')
+                  + '&w=' + (window.screen ? window.screen.width : 0);
+            if (navigator.sendBeacon) {
+                var blob = new Blob([q], { type: 'application/x-www-form-urlencoded' });
+                if (navigator.sendBeacon('count.php', blob)) return;
+            }
+            var img = new Image();
+            img.src = 'count.php?' + q + '&_=' + Date.now();
+        } catch (e) { /* 計測に失敗してもサイト表示には影響させない */ }
+    })();
+    </script>
+    <!-- ▲ アクセス計測ここまで -->
 </body>
 </html>
