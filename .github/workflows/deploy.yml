@@ -18,6 +18,22 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
 
+      # （任意）GitHub の Secrets に STATS_PASS を登録しておくと、
+      # アクセス解析ページ（stats.php）のパスワードとして自動で反映されます。
+      # 登録していない場合は、初回アクセス時にブラウザ画面上で設定できます。
+      - name: Apply stats password from secret (optional)
+        env:
+          STATS_PASS: ${{ secrets.STATS_PASS }}
+        run: |
+          if [ -n "$STATS_PASS" ]; then
+            mkdir -p data
+            B64=$(printf '%s' "$STATS_PASS" | base64 | tr -d '\n')
+            printf "<?php\nreturn array('pass_b64' => '%s');\n" "$B64" > data/stats-auth.php
+            echo "STATS_PASS を stats.php のパスワードとして反映します。"
+          else
+            echo "STATS_PASS は未登録です（ブラウザ上での初回設定を使用します）。"
+          fi
+
       - name: Upload via lftp
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
@@ -44,5 +60,7 @@ jobs:
             --exclude-glob config.sample.php \
             --exclude-glob orders.log \
             --exclude-glob README.txt \
+            --exclude-glob docs/ \
+            --exclude-glob access.json \
             ./ '${FTP_SERVER_DIR}';
           "
