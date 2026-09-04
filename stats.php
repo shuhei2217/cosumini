@@ -3,8 +3,12 @@
  * アクセス解析ダッシュボード
  * ------------------------------------------------------------------
  * ブラウザで  https://（サイトのURL）/stats.php  を開くと閲覧できます。
- * パスワードは config.php の 'stats_pass' に設定してください。
- *   例）'stats_pass' => 'ここに好きなパスワード',
+ *
+ * ▼ パスワードの決め方（次の順で採用されます。どれか1つでOK）
+ *   1. ブラウザで初回アクセスしたときに画面上で設定する（FTP不要・おすすめ）
+ *      → data/stats-auth.php にハッシュ化して保存されます
+ *   2. GitHub の Secrets に STATS_PASS を登録する（自動デプロイ時に反映）
+ *   3. サーバー上の config.php に 'stats_pass' => '…' を書く
  *
  * ・?csv=1  … 日別データをCSVでダウンロード
  * ・?logout=1 … ログアウト
@@ -16,14 +20,48 @@ header('X-Robots-Tag: noindex, nofollow');
 $DATA_FILE = __DIR__ . '/data/access.json';
 $COOKIE    = 'cosmini_stats';
 
-// --- 設定読み込み -----------------------------------------------------
-$pass = '';
+// --- パスワードの読み込み ---------------------------------------------
+$DATA_DIR  = __DIR__ . '/data';
+$AUTH_FILE = $DATA_DIR . '/stats-auth.php';
+
+$pass = '';      // 平文で設定された場合（config.php / GitHub Secrets）
+$passHash = '';  // 画面上で設定された場合（ハッシュで保存）
+
+// 1) config.php
 $cfgPath = __DIR__ . '/config.php';
 if (is_file($cfgPath)) {
     $cfg = @include $cfgPath;
     if (is_array($cfg) && !empty($cfg['stats_pass'])) {
         $pass = (string) $cfg['stats_pass'];
     }
+}
+// 2) data/stats-auth.php（画面設定のハッシュ、または GitHub Secrets 由来の平文）
+if ($pass === '' && is_file($AUTH_FILE)) {
+    $auth = @include $AUTH_FILE;
+    if (is_array($auth)) {
+        if (!empty($auth['hash'])) {
+            $passHash = (string) $auth['hash'];
+        } elseif (!empty($auth['pass_b64'])) {
+            $pass = (string) base64_decode((string) $auth['pass_b64']);
+        } elseif (!empty($auth['pass'])) {
+            $pass = (string) $auth['pass'];
+        }
+    }
+}
+
+$hasPassword = ($pass !== '' || $passHash !== '');
+
+function verify_pass($input, $pass, $passHash)
+{
+    if ($passHash !== '') {
+        return password_verify($input, $passHash);
+    }
+    return ($pass !== '' && hash_equals($pass, $input));
+}
+
+function auth_token($pass, $passHash)
+{
+    return hash_hmac('sha256', 'cosmini-stats-v1', $passHash !== '' ? $passHash : $pass);
 }
 
 function page_shell($title, $body)
@@ -73,16 +111,56 @@ code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px}
 CSS;
 }
 
-// --- ログイン ---------------------------------------------------------
-if ($pass === '') {
-    page_shell('アクセス解析｜設定が必要です', '<div class="wrap"><h1>アクセス解析</h1>'
-        . '<div class="notice"><b>パスワードが未設定です。</b><br>'
-        . 'サーバー上の <code>config.php</code> に次の1行を追加してください。<br><br>'
-        . "<code>'stats_pass' =&gt; '好きなパスワード',</code><br><br>"
-        . '（<code>config.sample.php</code> に記入例があります）</div></div>');
+// --- 初回セットアップ（パスワード未設定なら画面上で決める）--------------
+if (!$hasPassword) {
+    $setupError = '';
+    if (isset($_POST['newpw'])) {
+        $pw1 = (string) $_POST['newpw'];
+        $pw2 = isset($_POST['newpw2']) ? (string) $_POST['newpw2'] : '';
+        if (mb_strlen($pw1) < 6) {
+            $setupError = 'パスワードは6文字以上にしてください';
+        } elseif ($pw1 !== $pw2) {
+            $setupError = '確認用のパスワードが一致しません';
+        } else {
+            if (!is_dir($DATA_DIR)) {
+                @mkdir($DATA_DIR, 0755, true);
+            }
+            if (!is_dir($DATA_DIR) || !is_writable($DATA_DIR)) {
+                $setupError = 'サーバーの data フォルダに書き込めませんでした。パーミッションをご確認ください。';
+            } else {
+                $hash = password_hash($pw1, PASSWORD_DEFAULT);
+                $php = "<?php\n// アクセス解析ページのパスワード（ハッシュ化済み。元のパスワードは保存されません）\n"
+                     . "// パスワードを忘れた場合はこのファイルを削除すると再設定できます。\n"
+                     . "return array('hash' => '" . str_replace("'", "\\'", $hash) . "');\n";
+                if (@file_put_contents($AUTH_FILE, $php, LOCK_EX) === false) {
+                    $setupError = 'パスワードの保存に失敗しました。';
+                } else {
+                    @chmod($AUTH_FILE, 0600);
+                    setcookie($COOKIE, hash_hmac('sha256', 'cosmini-stats-v1', $hash), time() + 60 * 60 * 24 * 30, '/', '', !empty($_SERVER['HTTPS']), true);
+                    header('Location: stats.php');
+                    exit;
+                }
+            }
+        }
+    }
+
+    page_shell('アクセス解析｜初回設定',
+        '<form class="login" method="post"><h1>アクセス解析</h1>'
+        . '<p class="sub">最初にパスワードを決めてください。<br>次回からはこのパスワードで開けます。</p>'
+        . '<input type="password" name="newpw" placeholder="新しいパスワード（6文字以上）" autofocus required>'
+        . '<div style="height:8px"></div>'
+        . '<input type="password" name="newpw2" placeholder="もう一度入力" required>'
+        . '<button type="submit">このパスワードで設定する</button>'
+        . ($setupError ? '<div class="err">' . htmlspecialchars($setupError, ENT_QUOTES, 'UTF-8') . '</div>' : '')
+        . '<p class="muted" style="margin-top:14px;line-height:1.6">'
+        . '※ 他の人に先に設定されないよう、公開後はお早めに設定してください。<br>'
+        . '※ 忘れた場合はサーバーの <code>data/stats-auth.php</code> を削除すると再設定できます。'
+        . '</p>'
+        . '</form>');
 }
 
-$token = hash_hmac('sha256', 'cosmini-stats-v1', $pass);
+// --- ログイン ---------------------------------------------------------
+$token = auth_token($pass, $passHash);
 
 if (isset($_GET['logout'])) {
     setcookie($COOKIE, '', time() - 3600, '/');
@@ -94,7 +172,7 @@ $authed = isset($_COOKIE[$COOKIE]) && hash_equals($token, (string) $_COOKIE[$COO
 $loginError = '';
 
 if (!$authed && isset($_POST['pw'])) {
-    if (hash_equals($pass, (string) $_POST['pw'])) {
+    if (verify_pass((string) $_POST['pw'], $pass, $passHash)) {
         setcookie($COOKIE, $token, time() + 60 * 60 * 24 * 30, '/', '', !empty($_SERVER['HTTPS']), true);
         header('Location: stats.php');
         exit;

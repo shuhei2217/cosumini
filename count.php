@@ -70,20 +70,6 @@ if ($ref !== '') {
     }
 }
 
-// --- 訪問者ハッシュ（IP + UA をソルト付きでハッシュ化）----------------
-$salt = 'cosmini';
-$cfgPath = __DIR__ . '/config.php';
-if (is_file($cfgPath)) {
-    $cfg = @include $cfgPath;
-    if (is_array($cfg) && !empty($cfg['count_salt'])) {
-        $salt = (string) $cfg['count_salt'];
-    }
-}
-$ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
-$visitor = substr(hash('sha256', $salt . '|' . $ip . '|' . $ua), 0, 16);
-
-$isMobile = ($sw > 0 && $sw <= 767) || preg_match('/Mobile|Android|iPhone|iPod|Windows Phone/i', $ua);
-
 // --- 保存先の準備 -----------------------------------------------------
 if (!is_dir($DATA_DIR)) {
     @mkdir($DATA_DIR, 0755, true);
@@ -97,6 +83,37 @@ $ht = $DATA_DIR . '/.htaccess';
 if (!is_file($ht)) {
     @file_put_contents($ht, "<IfModule mod_authz_core.c>\n  Require all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n  Order allow,deny\n  Deny from all\n</IfModule>\n");
 }
+
+// --- 訪問者ハッシュ（IP + UA をソルト付きでハッシュ化）----------------
+// ソルトは設定不要です。サーバー上で自動生成し data/salt.txt に保存します。
+// （config.php に 'count_salt' を書いた場合はそちらを優先）
+$salt = '';
+$cfgPath = __DIR__ . '/config.php';
+if (is_file($cfgPath)) {
+    $cfg = @include $cfgPath;
+    if (is_array($cfg) && !empty($cfg['count_salt'])) {
+        $salt = (string) $cfg['count_salt'];
+    }
+}
+if ($salt === '') {
+    $saltFile = $DATA_DIR . '/salt.txt';
+    if (is_file($saltFile)) {
+        $salt = trim((string) @file_get_contents($saltFile));
+    }
+    if ($salt === '') {
+        if (function_exists('random_bytes')) {
+            $salt = bin2hex(random_bytes(16));
+        } else {
+            $salt = hash('sha256', uniqid('', true) . mt_rand());
+        }
+        @file_put_contents($saltFile, $salt, LOCK_EX);
+        @chmod($saltFile, 0600);
+    }
+}
+$ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+$visitor = substr(hash('sha256', $salt . '|' . $ip . '|' . $ua), 0, 16);
+
+$isMobile = ($sw > 0 && $sw <= 767) || preg_match('/Mobile|Android|iPhone|iPod|Windows Phone/i', $ua);
 
 $fp = @fopen($DATA_FILE, 'c+');
 if (!$fp) {

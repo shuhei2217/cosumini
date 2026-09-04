@@ -6,3 +6,5 @@ config.php
 orders.log
 # アクセス集計データ（サーバー上でのみ生成・保持。デプロイで上書きしない）
 data/access.json
+data/salt.txt
+data/stats-auth.php
