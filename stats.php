@@ -16,6 +16,10 @@
 
 mb_internal_encoding('UTF-8');
 header('X-Robots-Tag: noindex, nofollow');
+// 再読み込みで必ず最新の数字が出るようにする（ブラウザのキャッシュを使わせない）
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 
 $DATA_FILE = __DIR__ . '/data/access.json';
 $COOKIE    = 'cosmini_stats';
@@ -286,9 +290,17 @@ function h($s)
 <div class="wrap">
     <h1>アクセス解析</h1>
     <p class="sub">
-        COS mini 国分店　/　最終更新：<?php echo h($d['updated'] !== '' ? $d['updated'] : '—'); ?>
+        COS mini 国分店　/　最後に訪問があった時刻：<?php echo h($d['updated'] !== '' ? $d['updated'] : '—'); ?>
         <?php if ($d['since'] !== '') { ?>　/　計測開始：<?php echo h($d['since']); ?><?php } ?>
     </p>
+    <p style="margin:-12px 0 18px">
+        <a href="stats.php?t=<?php echo time(); ?>" style="display:inline-block;background:#005DAA;color:#fff;text-decoration:none;font-weight:800;font-size:13px;padding:9px 16px;border-radius:999px">🔄 最新の数字に更新</a>
+        <span class="muted" style="margin-left:10px">この画面を表示した時刻：<?php echo h(date('H:i:s')); ?></span>
+    </p>
+    <div class="notice" style="background:#EFF6FF;border-color:#BFDBFE;color:#1E40AF;margin-bottom:16px">
+        この解析画面を見てもカウントは増えません。数えているのは<b>トップページを見た人</b>だけです
+        （ご自身の閲覧で数字が水増しされないようにしているためです）。
+    </div>
 
     <?php if ((int) $d['total'] === 0) { ?>
     <div class="notice">

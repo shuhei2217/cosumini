@@ -1028,19 +1028,23 @@
     <!-- ▼ アクセス計測（自前カウンター / count.php に記録し stats.php で確認） -->
     <script>
     (function () {
-        if (window.__cosminiCounted) return;
-        window.__cosminiCounted = true;
-        try {
-            var q = 'p=' + encodeURIComponent(location.pathname + location.search)
-                  + '&r=' + encodeURIComponent(document.referrer || '')
-                  + '&w=' + (window.screen ? window.screen.width : 0);
-            if (navigator.sendBeacon) {
-                var blob = new Blob([q], { type: 'application/x-www-form-urlencoded' });
-                if (navigator.sendBeacon('count.php', blob)) return;
-            }
-            var img = new Image();
-            img.src = 'count.php?' + q + '&_=' + Date.now();
-        } catch (e) { /* 計測に失敗してもサイト表示には影響させない */ }
+        function send() {
+            try {
+                var q = 'p=' + encodeURIComponent(location.pathname + location.search)
+                      + '&r=' + encodeURIComponent(document.referrer || '')
+                      + '&w=' + (window.screen ? window.screen.width : 0);
+                if (navigator.sendBeacon) {
+                    var blob = new Blob([q], { type: 'application/x-www-form-urlencoded' });
+                    if (navigator.sendBeacon('count.php', blob)) return;
+                }
+                var img = new Image();
+                img.src = 'count.php?' + q + '&_=' + Date.now();
+            } catch (e) { /* 計測に失敗してもサイト表示には影響させない */ }
+        }
+
+        send();
+        // 「戻る」ボタンなどでページが再表示されたときも数える
+        window.addEventListener('pageshow', function (e) { if (e.persisted) send(); });
     })();
     </script>
     <!-- ▲ アクセス計測ここまで -->
