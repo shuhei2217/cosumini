@@ -401,6 +401,45 @@ function h($s)
             <tr><td>PHP バージョン</td><td></td><td class="muted"><?php echo h(PHP_VERSION); ?></td></tr>
         </table>
 
+        <?php
+        $recent = isset($d['recent']) && is_array($d['recent']) ? array_reverse($d['recent']) : array();
+        $reasonText = array(
+            'bot'        => 'ロボットと判定',
+            'ua_empty'   => 'ブラウザ情報なし',
+            'dupe_10sec' => '10秒以内の再訪問',
+        );
+        ?>
+        <h2 style="margin-top:22px">📥 サーバーに届いた直近の記録</h2>
+        <p class="muted" style="margin-bottom:10px">
+            サイトを開いたのにここに何も出ない場合は、そもそも計測の合図が届いていません
+            （端末に古いページが残っている可能性があります）。
+            最後にリクエストが届いた時刻：<b><?php echo h(isset($d['last_req']) && $d['last_req'] !== '' ? $d['last_req'] : '—'); ?></b>
+        </p>
+        <?php if (!$recent) { ?>
+            <p class="muted">まだ1件も届いていません。</p>
+        <?php } else { ?>
+        <table>
+            <tr><th>時刻</th><th>ページ</th><th>結果</th></tr>
+            <?php foreach ($recent as $r) {
+                $ok = !empty($r['c']);
+                $why = isset($r['r']) && $r['r'] !== '' ? $r['r'] : '';
+                ?>
+            <tr>
+                <td style="white-space:nowrap"><?php echo h(isset($r['t']) ? $r['t'] : '—'); ?></td>
+                <td style="word-break:break-all"><?php echo h(isset($r['p']) ? $r['p'] : '—'); ?><?php echo !empty($r['m']) ? ' <span class="muted">(スマホ)</span>' : ''; ?></td>
+                <td style="white-space:nowrap">
+                    <?php if ($ok) { ?>
+                        <span style="color:#16A34A;font-weight:900">数えた</span>
+                    <?php } else { ?>
+                        <span style="color:#94A3B8;font-weight:700">数えず</span>
+                        <span class="muted"><?php echo h(isset($reasonText[$why]) ? $reasonText[$why] : $why); ?></span>
+                    <?php } ?>
+                </td>
+            </tr>
+            <?php } ?>
+        </table>
+        <?php } ?>
+
         <p class="muted" style="margin-top:14px">
             下のボタンを押すと、このブラウザから実際に1件送信してみます。<br>
             <code>"ok":true, "counted":true</code> と出れば計測は正常です。

@@ -29,8 +29,12 @@ function respond($arr)
 // --- ボット・クローラーは数えない -------------------------------------
 $ua = isset($_SERVER['HTTP_USER_AGENT']) ? (string) $_SERVER['HTTP_USER_AGENT'] : '';
 $botRe = '/bot|crawl|spider|slurp|mediapartners|facebookexternalhit|headless|phantom|monitor|uptime|curl|wget|python|java\/|go-http|libwww|okhttp|ahrefs|semrush|mj12|dotbot|petal|yandex|baidu|applebot|gptbot|claudebot|ccbot|bytespider|preview/i';
-if ($ua === '' || preg_match($botRe, $ua)) {
-    respond(array('ok' => true, 'skipped' => 'bot'));
+// ボットは数えませんが、「届いたが数えなかった」ことが分かるよう記録は残します
+$skipReason = '';
+if ($ua === '') {
+    $skipReason = 'ua_empty';
+} elseif (preg_match($botRe, $ua)) {
+    $skipReason = 'bot';
 }
 
 // --- 入力（GET/POST どちらでも受け付ける）-----------------------------
@@ -147,9 +151,29 @@ $now   = time();
 $dupe = false;
 if (isset($d['visitors'][$today][$visitor]) && ($now - (int) $d['visitors'][$today][$visitor]) < 10) {
     $dupe = true;
+    if ($skipReason === '') {
+        $skipReason = 'dupe_10sec';
+    }
 }
 
-if (!$dupe) {
+// 直近20件の受信記録（動作確認用。IPアドレスは保存しません）
+if (!isset($d['recent']) || !is_array($d['recent'])) {
+    $d['recent'] = array();
+}
+$d['recent'][] = array(
+    't' => date('m/d H:i:s'),
+    'p' => $path,
+    'c' => ($skipReason === '') ? 1 : 0,
+    'r' => $skipReason,
+    'm' => $isMobile ? 1 : 0,
+    'u' => mb_substr($ua, 0, 70),
+);
+if (count($d['recent']) > 20) {
+    $d['recent'] = array_slice($d['recent'], -20);
+}
+$d['last_req'] = date('Y-m-d H:i:s');
+
+if ($skipReason === '') {
     if (!isset($d['days'][$today])) {
         $d['days'][$today] = array('pv' => 0, 'uv' => 0, 'mb' => 0, 'hours' => array_fill(0, 24, 0));
     }
@@ -175,8 +199,12 @@ if (!$dupe) {
     }
 }
 
-$d['visitors'][$today][$visitor] = $now;
-$d['updated'] = date('Y-m-d H:i:s');
+if ($skipReason !== 'bot' && $skipReason !== 'ua_empty') {
+    $d['visitors'][$today][$visitor] = $now;
+}
+if ($skipReason === '') {
+    $d['updated'] = date('Y-m-d H:i:s');
+}
 
 // --- 古いデータの整理 -------------------------------------------------
 $limitDay = date('Y-m-d', strtotime('-' . $KEEP_DAYS . ' days'));
@@ -208,7 +236,8 @@ fclose($fp);
 
 respond(array(
     'ok'      => true,
-    'counted' => !$dupe,                       // false＝直前と同じ訪問者・同じページのため数えていない
+    'counted' => ($skipReason === ''),
+    'reason'  => $skipReason,                  // bot / ua_empty / dupe_10sec のいずれか
     'total'   => (int) $d['total'],
-    'today'   => (int) $d['days'][$today]['pv'],
+    'today'   => isset($d['days'][$today]['pv']) ? (int) $d['days'][$today]['pv'] : 0,
 ));
