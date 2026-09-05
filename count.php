@@ -64,6 +64,7 @@ if ($path === '') {
 $ref = param('r', 300);
 $sw  = (int) param('w', 6);   // 画面幅（モバイル判定用）
 $ver = param('v', 10);        // 計測タグのバージョン（どの版のページから届いたか）
+$isTest = (param('test', 3) === '1');   // 動作確認用の送信（アクセス数には数えない）
 
 // 流入元は「ホスト名」だけ保存（自サイト内リンクは除外）
 $refHost = '';
@@ -149,6 +150,9 @@ $hour  = (int) date('G');
 $now   = time();
 
 // 同じ訪問者の連打（10秒以内の同一ページ）は二重カウントしない
+if ($isTest && $skipReason === '') {
+    $skipReason = 'test';       // 動作確認用のためアクセス数には加えない
+}
 $dupe = false;
 if (isset($d['visitors'][$today][$visitor]) && ($now - (int) $d['visitors'][$today][$visitor]) < 10) {
     $dupe = true;
@@ -201,7 +205,7 @@ if ($skipReason === '') {
     }
 }
 
-if ($skipReason !== 'bot' && $skipReason !== 'ua_empty') {
+if ($skipReason !== 'bot' && $skipReason !== 'ua_empty' && $skipReason !== 'test') {
     $d['visitors'][$today][$visitor] = $now;
 }
 if ($skipReason === '') {
@@ -239,7 +243,8 @@ fclose($fp);
 respond(array(
     'ok'      => true,
     'counted' => ($skipReason === ''),
-    'reason'  => $skipReason,                  // bot / ua_empty / dupe_10sec のいずれか
+    'reason'  => $skipReason,                  // test / bot / ua_empty / dupe_10sec のいずれか
+    'note'    => $isTest ? 'テスト送信のためアクセス数には加えていません' : '',
     'total'   => (int) $d['total'],
     'today'   => isset($d['days'][$today]['pv']) ? (int) $d['days'][$today]['pv'] : 0,
 ));

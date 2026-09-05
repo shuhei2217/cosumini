@@ -195,6 +195,18 @@ if (!$authed) {
         . '</form>');
 }
 
+// --- 計測データのリセット（ログイン済みのみ）---------------------------
+$resetDone = false;
+if (isset($_POST['reset']) && $_POST['reset'] === 'yes') {
+    $fresh = array(
+        'total' => 0, 'days' => array(), 'pages' => array(), 'refs' => array(),
+        'visitors' => array(), 'recent' => array(),
+        'since' => date('Y-m-d'), 'updated' => '', 'last_req' => '',
+    );
+    @file_put_contents($DATA_FILE, json_encode($fresh, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
+    $resetDone = true;
+}
+
 // --- データ読み込み ---------------------------------------------------
 $d = array();
 if (is_file($DATA_FILE)) {
@@ -407,6 +419,7 @@ function h($s)
             'bot'        => 'ロボットと判定',
             'ua_empty'   => 'ブラウザ情報なし',
             'dupe_10sec' => '10秒以内の再訪問',
+            'test'       => '動作確認のテスト送信',
         );
         ?>
         <h2 style="margin-top:22px">📥 サーバーに届いた直近の記録</h2>
@@ -441,8 +454,9 @@ function h($s)
         <?php } ?>
 
         <p class="muted" style="margin-top:14px">
-            下のボタンを押すと、このブラウザから実際に1件送信してみます。<br>
-            <code>"ok":true, "counted":true</code> と出れば計測は正常です。
+            下のボタンを押すと、このブラウザからサーバーへ通信できるか確認します。<br>
+            <code>"ok":true</code> と出れば通信は正常です。
+            <b>この送信はアクセス数には数えません</b>（お店の本当の数字が狂わないようにするためです）。
         </p>
         <button type="button" id="selftest">テスト送信してみる</button>
         <pre id="selftest-out" style="white-space:pre-wrap;word-break:break-all;background:#F1F5F9;border-radius:8px;padding:10px;font-size:12px;margin-top:10px;display:none"></pre>
@@ -451,12 +465,12 @@ function h($s)
             var out = document.getElementById('selftest-out');
             out.style.display = 'block';
             out.textContent = '送信中…';
-            fetch('count.php?p=/self-test&w=' + (window.screen ? window.screen.width : 0) + '&_=' + Date.now(), { cache: 'no-store' })
+            fetch('count.php?p=/self-test&test=1&w=' + (window.screen ? window.screen.width : 0) + '&_=' + Date.now(), { cache: 'no-store' })
                 .then(function (r) { return r.text().then(function (t) { return { s: r.status, t: t }; }); })
                 .then(function (r) {
                     out.textContent = 'HTTP ' + r.s + '\n' + r.t
                         + (r.s === 200 && r.t.indexOf('"ok":true') !== -1
-                            ? '\n\n→ 計測は正常に動いています。この画面を再読み込みすると数値が増えます。'
+                            ? '\n\n→ サーバーに正しく届いています。（テスト送信はアクセス数には数えません）'
                             : '\n\n→ うまくいっていません。この内容をそのままお知らせください。');
                 })
                 .catch(function (e) { out.textContent = 'エラー: ' + e + '\n\n→ この内容をそのままお知らせください。'; });
@@ -470,6 +484,19 @@ function h($s)
             <a href="?csv=1">日別データをCSVでダウンロード（Excel用）</a>
             <a href="?logout=1">ログアウト</a>
         </div>
+        <?php if ($resetDone) { ?>
+            <p style="color:#16A34A;font-weight:800;font-size:13px;margin-top:12px">計測データをリセットしました。ここから数え直します。</p>
+        <?php } ?>
+        <form method="post" style="margin-top:16px;border-top:1px solid #F1F5F9;padding-top:14px"
+              onsubmit="return confirm('これまでのアクセス数をすべて消して、ゼロから数え直します。よろしいですか？');">
+            <input type="hidden" name="reset" value="yes">
+            <p class="muted" style="margin:0 0 8px">
+                動作確認のテスト分などを消して、きれいな状態から数え直したいときに使います。
+            </p>
+            <button type="submit" style="background:#fff;color:#D91A2A;border:1px solid #FCA5A5;width:auto;padding:9px 16px;font-size:13px">
+                計測データをゼロにリセットする
+            </button>
+        </form>
         <p class="muted" style="margin-top:10px">
             ※ 保存しているのはアクセス数だけです。氏名・IPアドレスなどの個人情報は保存していません（重複判定用にハッシュ化した値のみ一時保持）。
         </p>
