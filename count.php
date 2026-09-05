@@ -161,6 +161,29 @@ if (isset($d['visitors'][$today][$visitor]) && ($now - (int) $d['visitors'][$tod
     }
 }
 
+// 過去に動作確認用のテスト送信が数えられていた分を、一度だけ差し引く
+// （テストは /self-test として記録されているため、本物の訪問には影響しません）
+if (isset($d['pages']['/self-test'])) {
+    $testHits = (int) $d['pages']['/self-test'];
+    unset($d['pages']['/self-test']);
+    $d['total'] = max(0, (int) $d['total'] - $testHits);
+    if (isset($d['days'][$today]['pv']) && (int) $d['days'][$today]['pv'] >= $testHits) {
+        $d['days'][$today]['pv'] = (int) $d['days'][$today]['pv'] - $testHits;
+        $d['days'][$today]['uv'] = max(0, (int) $d['days'][$today]['uv'] - 1);
+        $d['days'][$today]['mb'] = max(0, (int) $d['days'][$today]['mb'] - $testHits);
+    } else {
+        // 日付をまたいでいた場合は、差し引ける最新の日から引く
+        foreach (array_reverse(array_keys($d['days'])) as $dk) {
+            if ((int) $d['days'][$dk]['pv'] >= $testHits) {
+                $d['days'][$dk]['pv'] = (int) $d['days'][$dk]['pv'] - $testHits;
+                $d['days'][$dk]['uv'] = max(0, (int) $d['days'][$dk]['uv'] - 1);
+                $d['days'][$dk]['mb'] = max(0, (int) $d['days'][$dk]['mb'] - $testHits);
+                break;
+            }
+        }
+    }
+}
+
 // 直近20件の受信記録（動作確認用。IPアドレスは保存しません）
 if (!isset($d['recent']) || !is_array($d['recent'])) {
     $d['recent'] = array();
