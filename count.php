@@ -74,9 +74,19 @@ if ($ref !== '') {
 if (!is_dir($DATA_DIR)) {
     @mkdir($DATA_DIR, 0755, true);
 }
+if (is_dir($DATA_DIR) && !is_writable($DATA_DIR)) {
+    // FTPで作られたフォルダにPHPが書き込めない場合があるため、権限の修正を試みる
+    @chmod($DATA_DIR, 0777);
+    clearstatcache();
+}
 if (!is_dir($DATA_DIR) || !is_writable($DATA_DIR)) {
     http_response_code(500);
-    respond(array('ok' => false, 'error' => 'data_dir_not_writable'));
+    respond(array(
+        'ok'    => false,
+        'error' => 'data_dir_not_writable',
+        'hint'  => 'サーバーの data フォルダに書き込めません。FTPで data フォルダの属性を 777 に変更してください。',
+        'dir'   => $DATA_DIR,
+    ));
 }
 // data/ の中身を直接ダウンロードされないように保護
 $ht = $DATA_DIR . '/.htaccess';
@@ -197,7 +207,8 @@ fflush($fp);
 fclose($fp);
 
 respond(array(
-    'ok'    => true,
-    'total' => (int) $d['total'],
-    'today' => (int) $d['days'][$today]['pv'],
+    'ok'      => true,
+    'counted' => !$dupe,                       // false＝直前と同じ訪問者・同じページのため数えていない
+    'total'   => (int) $d['total'],
+    'today'   => (int) $d['days'][$today]['pv'],
 ));

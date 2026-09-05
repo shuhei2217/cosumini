@@ -231,7 +231,7 @@ if (isset($_GET['csv'])) {
     header('Content-Disposition: attachment; filename="cosmini-access-' . date('Ymd') . '.csv"');
     $rows = array(array('日付', 'ページビュー', '訪問者数', 'モバイル'));
     foreach ($days as $date => $v) {
-        $rows[] = array($date, (int) ($v['pv'] ?? 0), (int) ($v['uv'] ?? 0), (int) ($v['mb'] ?? 0));
+        $rows[] = array($date, isset($v['pv']) ? (int) $v['pv'] : 0, isset($v['uv']) ? (int) $v['uv'] : 0, isset($v['mb']) ? (int) $v['mb'] : 0);
     }
     foreach ($rows as $r) {
         echo mb_convert_encoding(implode(',', $r), 'SJIS-win', 'UTF-8') . "\r\n";
@@ -359,6 +359,58 @@ function h($s)
                 <?php } ?>
             </table>
         </div>
+    </div>
+
+    <div class="card">
+        <h2>🩺 動作チェック（うまく数えられないときはここを確認）</h2>
+        <?php
+        $indexFile = __DIR__ . '/index.html';
+        $indexHas  = is_file($indexFile) && strpos((string) @file_get_contents($indexFile), 'count.php') !== false;
+        $dirOk     = is_dir($DATA_DIR);
+        $writeOk   = $dirOk && is_writable($DATA_DIR);
+        $jsonOk    = is_file($DATA_FILE);
+        $checks = array(
+            array('計測ファイル（count.php）', is_file(__DIR__ . '/count.php'), is_file(__DIR__ . '/count.php') ? 'あります' : 'サーバーにありません'),
+            array('サイトの計測タグ', $indexHas, $indexHas ? 'index.html に入っています' : 'index.html に入っていません（デプロイが未反映かもしれません）'),
+            array('data フォルダ', $dirOk, $dirOk ? 'あります' : 'ありません'),
+            array('data への書き込み', $writeOk, $writeOk ? 'できます' : 'できません（FTPで data フォルダの属性を 777 にしてください）'),
+            array('集計ファイル', $jsonOk, $jsonOk ? ('あります（最終更新 ' . date('n/j H:i', (int) @filemtime($DATA_FILE)) . '）') : 'まだ作られていません（アクセスが1件も記録されていません）'),
+        );
+        ?>
+        <table>
+            <?php foreach ($checks as $c) { ?>
+            <tr>
+                <td style="width:44%"><?php echo h($c[0]); ?></td>
+                <td style="width:32px"><?php echo $c[1] ? '<span style="color:#16A34A;font-weight:900">OK</span>' : '<span style="color:#D91A2A;font-weight:900">NG</span>'; ?></td>
+                <td class="muted"><?php echo h($c[2]); ?></td>
+            </tr>
+            <?php } ?>
+            <tr><td>サイトの最終更新</td><td></td><td class="muted"><?php echo is_file($indexFile) ? h(date('Y-m-d H:i', (int) @filemtime($indexFile))) : '—'; ?></td></tr>
+            <tr><td>PHP バージョン</td><td></td><td class="muted"><?php echo h(PHP_VERSION); ?></td></tr>
+        </table>
+
+        <p class="muted" style="margin-top:14px">
+            下のボタンを押すと、このブラウザから実際に1件送信してみます。<br>
+            <code>"ok":true, "counted":true</code> と出れば計測は正常です。
+        </p>
+        <button type="button" id="selftest">テスト送信してみる</button>
+        <pre id="selftest-out" style="white-space:pre-wrap;word-break:break-all;background:#F1F5F9;border-radius:8px;padding:10px;font-size:12px;margin-top:10px;display:none"></pre>
+        <script>
+        document.getElementById('selftest').addEventListener('click', function () {
+            var out = document.getElementById('selftest-out');
+            out.style.display = 'block';
+            out.textContent = '送信中…';
+            fetch('count.php?p=/self-test&w=' + (window.screen ? window.screen.width : 0) + '&_=' + Date.now(), { cache: 'no-store' })
+                .then(function (r) { return r.text().then(function (t) { return { s: r.status, t: t }; }); })
+                .then(function (r) {
+                    out.textContent = 'HTTP ' + r.s + '\n' + r.t
+                        + (r.s === 200 && r.t.indexOf('"ok":true') !== -1
+                            ? '\n\n→ 計測は正常に動いています。この画面を再読み込みすると数値が増えます。'
+                            : '\n\n→ うまくいっていません。この内容をそのままお知らせください。');
+                })
+                .catch(function (e) { out.textContent = 'エラー: ' + e + '\n\n→ この内容をそのままお知らせください。'; });
+        });
+        </script>
     </div>
 
     <div class="card">
