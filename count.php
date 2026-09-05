@@ -63,6 +63,7 @@ if ($path === '') {
 }
 $ref = param('r', 300);
 $sw  = (int) param('w', 6);   // 画面幅（モバイル判定用）
+$ver = param('v', 10);        // 計測タグのバージョン（どの版のページから届いたか）
 
 // 流入元は「ホスト名」だけ保存（自サイト内リンクは除外）
 $refHost = '';
@@ -167,6 +168,7 @@ $d['recent'][] = array(
     'r' => $skipReason,
     'm' => $isMobile ? 1 : 0,
     'u' => mb_substr($ua, 0, 70),
+    'v' => $ver,
 );
 if (count($d['recent']) > 20) {
     $d['recent'] = array_slice($d['recent'], -20);

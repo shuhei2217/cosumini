@@ -426,7 +426,7 @@ function h($s)
                 ?>
             <tr>
                 <td style="white-space:nowrap"><?php echo h(isset($r['t']) ? $r['t'] : '—'); ?></td>
-                <td style="word-break:break-all"><?php echo h(isset($r['p']) ? $r['p'] : '—'); ?><?php echo !empty($r['m']) ? ' <span class="muted">(スマホ)</span>' : ''; ?></td>
+                <td style="word-break:break-all"><?php echo h(isset($r['p']) ? $r['p'] : '—'); ?><?php echo !empty($r['m']) ? ' <span class="muted">(スマホ)</span>' : ''; ?><?php echo !empty($r['v']) ? ' <span class="muted">v' . h($r['v']) . '</span>' : ' <span class="muted">v?</span>'; ?></td>
                 <td style="white-space:nowrap">
                     <?php if ($ok) { ?>
                         <span style="color:#16A34A;font-weight:900">数えた</span>

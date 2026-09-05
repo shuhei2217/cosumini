@@ -8,3 +8,7 @@ orders.log
 data/access.json
 data/salt.txt
 data/stats-auth.php
+/.htaccess
+remote.htaccess
+listing.txt
+lftp_err.txt

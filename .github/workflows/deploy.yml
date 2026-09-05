@@ -34,6 +34,52 @@ jobs:
             echo "STATS_PASS は未登録です（ブラウザ上での初回設定を使用します）。"
           fi
 
+      # HTML がキャッシュされると、更新した内容（計測タグを含む）が訪問者に届きません。
+      # サーバー上の .htaccess に「HTMLはキャッシュしない」設定を追記します。
+      # 既存の .htaccess は必ず取得してから末尾に追記し、内容を失わないようにします。
+      - name: Ensure HTML is not cached (merge into remote .htaccess)
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_SERVER_DIR: ${{ secrets.FTP_SERVER_DIR }}
+        run: |
+          set -u
+          OPTS="set ftp:ssl-allow no; set ftp:passive-mode on; set ftp:prefer-epsv no; set ssl:verify-certificate no; set net:max-retries 3; set net:timeout 20;"
+          if ! lftp -c "$OPTS open -u '$FTP_USERNAME','$FTP_PASSWORD' '$FTP_SERVER'; cd '$FTP_SERVER_DIR'; cls -1 -a" > listing.txt 2> lftp_err.txt; then
+            echo "サーバーの一覧を取得できませんでした。.htaccess は変更しません。"
+            cat lftp_err.txt || true
+            exit 0
+          fi
+          if grep -qx '\.htaccess' listing.txt; then
+            echo "既存の .htaccess を取得します。"
+            if ! lftp -c "$OPTS open -u '$FTP_USERNAME','$FTP_PASSWORD' '$FTP_SERVER'; cd '$FTP_SERVER_DIR'; get .htaccess -o remote.htaccess"; then
+              echo "取得に失敗しました。上書き事故を防ぐため .htaccess は変更しません。"
+              exit 0
+            fi
+          else
+            echo "サーバーに .htaccess はありません。新規作成します。"
+            : > remote.htaccess
+          fi
+          cp remote.htaccess .htaccess
+          if grep -q 'COSMINI-NOCACHE' remote.htaccess; then
+            echo "設定済みのため追記しません。"
+            exit 0
+          fi
+          {
+            printf '\n'
+            printf '# === COSMINI-NOCACHE ここから（自動追記：削除しないでください）===\n'
+            printf '# HTMLを常に最新にする（アクセス計測タグを確実に届けるため）\n'
+            printf '<IfModule mod_headers.c>\n'
+            printf '  <FilesMatch "\\.(html|htm)$">\n'
+            printf '    Header set Cache-Control "no-cache, must-revalidate, max-age=0"\n'
+            printf '  </FilesMatch>\n'
+            printf '</IfModule>\n'
+            printf '# === COSMINI-NOCACHE ここまで ===\n'
+          } >> .htaccess
+          echo "--- アップロードされる .htaccess ---"
+          cat .htaccess
+
       - name: Upload via lftp
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
