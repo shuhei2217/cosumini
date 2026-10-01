@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash 'C:/Users/OWNER/Documents/GitHub/cosumini/.claude/auto-push.sh'",
+            "timeout": 120,
+            "statusMessage": "Syncing changes to GitHub..."
+          }
+        ]
+      }
+    ]
+  }
+}
